@@ -16,13 +16,13 @@ template <> struct SYRKDispatcher<float> {
 template <typename DataType> struct SYRKEnvironment {
   struct Argument {
     int m, k, repeat;
-    Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic> M, resultEigen,
+    Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic> A, resultEigen,
         resultBLAS;
   };
 
   static void prepare(Argument &argument) {
-    argument.M.resize(argument.m, argument.k);
-    argument.M.setRandom();
+    argument.A.resize(argument.m, argument.k);
+    argument.A.setRandom();
     argument.resultEigen.resize(argument.m, argument.m);
     argument.resultBLAS.resize(argument.m, argument.m);
     argument.resultBLAS.setZero();
@@ -31,11 +31,11 @@ template <typename DataType> struct SYRKEnvironment {
   static void reset(Argument &argument) {}
 
   static void computeReference(Argument &argument) {
-    argument.resultEigen = argument.M * argument.M.transpose();
+    argument.resultEigen = argument.A * argument.A.transpose();
   }
 
   static void compute(Argument &argument) {
-    const auto &M = argument.M;
+    const auto &M = argument.A;
     auto &resultBLAS = argument.resultBLAS;
     SYRKDispatcher<DataType>::call(
         CblasColMajor, CblasLower, CblasNoTrans, argument.m, argument.k, 1.,
