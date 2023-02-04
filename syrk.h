@@ -39,7 +39,7 @@ template <typename DataType> struct SYRKEnvironment {
     auto &resultBLAS = argument.resultBLAS;
     SYRKDispatcher<DataType>::call(
         CblasColMajor, CblasLower, CblasNoTrans, argument.m, argument.k, 1.,
-        M.data(), argument.m, 0., resultBLAS.data(), argument.k);
+        M.data(), argument.m, 0., resultBLAS.data(), argument.m);
   }
 
   static void check(Argument &argument) {
