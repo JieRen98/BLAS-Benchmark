@@ -1,5 +1,6 @@
 #include "gemm.h"
 #include "syrk.h"
+#include "trsm.h"
 #include <chrono>
 #include <cstdio>
 #include <gflags/gflags.h>
@@ -9,31 +10,38 @@ void test(typename TestEnvironment::Argument &argument, const char *name) {
   printf("======== Profiling %s ========\n", name);
   TestEnvironment::prepare(argument);
   TestEnvironment::computeReference(argument);
+  std::chrono::system_clock::duration duration{0};
   std::chrono::system_clock::time_point start;
-  start = std::chrono::system_clock::now();
   for (int i = 0; i < argument.repeat; ++i) {
+    TestEnvironment::reset(argument);
+    start = std::chrono::system_clock::now();
     TestEnvironment::compute(argument);
+    duration += std::chrono::system_clock::now() - start;
   }
-  auto duration = std::chrono::system_clock::now() - start;
   printf(
-      "Elapsed: %ldus\n",
+      "Elapsed: %ld us\n",
       std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
   TestEnvironment::check(argument);
 }
 
 DEFINE_int32(repeat, 1000, "Repeat times");
-DEFINE_int32(size, 100, "Matrix Size");
+DEFINE_int32(m, 100, "Matrix Size");
+DEFINE_int32(n, 100, "Matrix Size");
+DEFINE_int32(k, 100, "Matrix Size");
 
 int main(int argc, char *argv[]) {
   GFLAGS_NAMESPACE::ParseCommandLineFlags(&argc, &argv, true);
-  const int repeat = FLAGS_repeat, size = FLAGS_size;
+  const int repeat = FLAGS_repeat, m = FLAGS_m, n = FLAGS_n, k = FLAGS_k;
   printf("======== Simple Benchmark ========\n");
-  printf("Parameter:\nRepeat: %d, Matrix Size: %d\n", repeat, size);
+  printf("Parameter:\nRepeat: %d, Matrix Size: (m: %d, n: %d, k: %d)\n", repeat,
+         m, n, k);
 
   {
     using Environment = GEMMEnvironment<double>;
     Environment::Argument argument;
-    argument.size = size;
+    argument.m = m;
+    argument.n = n;
+    argument.k = k;
     argument.repeat = repeat;
     test<Environment>(argument, "GEMM<double>");
   }
@@ -41,7 +49,9 @@ int main(int argc, char *argv[]) {
   {
     using Environment = GEMMEnvironment<float>;
     Environment::Argument argument;
-    argument.size = size;
+    argument.m = m;
+    argument.n = n;
+    argument.k = k;
     argument.repeat = repeat;
     test<Environment>(argument, "GEMM<float>");
   }
@@ -49,7 +59,8 @@ int main(int argc, char *argv[]) {
   {
     using Environment = SYRKEnvironment<double>;
     Environment::Argument argument;
-    argument.size = size;
+    argument.m = m;
+    argument.k = k;
     argument.repeat = repeat;
     test<Environment>(argument, "SYRK<double>");
   }
@@ -57,8 +68,27 @@ int main(int argc, char *argv[]) {
   {
     using Environment = SYRKEnvironment<float>;
     Environment::Argument argument;
-    argument.size = size;
+    argument.m = m;
+    argument.k = k;
     argument.repeat = repeat;
     test<Environment>(argument, "SYRK<float>");
+  }
+
+  {
+    using Environment = TRSMEnvironment<double>;
+    Environment::Argument argument;
+    argument.m = m;
+    argument.n = n;
+    argument.repeat = repeat;
+    test<Environment>(argument, "TRSM<double>");
+  }
+
+  {
+    using Environment = TRSMEnvironment<float>;
+    Environment::Argument argument;
+    argument.m = m;
+    argument.n = n;
+    argument.repeat = repeat;
+    test<Environment>(argument, "TRSM<float>");
   }
 }
