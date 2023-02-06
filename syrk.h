@@ -1,4 +1,5 @@
 #pragma once
+#include "util.h"
 #include <Eigen/Core>
 #if USE_MKL
 #include <mkl_cblas.h>
@@ -19,17 +20,21 @@ template <> struct SYRKDispatcher<float> {
 
 template <typename DataType> struct SYRKEnvironment {
   struct Argument {
-    int m, k, repeat;
+    int m, k;
     Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic> A, resultEigen,
         resultBLAS;
   };
 
-  static void prepare(Argument &argument) {
+  static Argument prepare(const HyperParameter &hyperParameter) {
+    Argument argument;
+    argument.m = hyperParameter.iterator->m;
+    argument.k = hyperParameter.iterator->k;
     argument.A.resize(argument.m, argument.k);
     argument.A.setRandom();
     argument.resultEigen.resize(argument.m, argument.m);
     argument.resultBLAS.resize(argument.m, argument.m);
     argument.resultBLAS.setZero();
+    return argument;
   }
 
   static void reset(Argument &argument) {}
@@ -47,12 +52,13 @@ template <typename DataType> struct SYRKEnvironment {
   }
 
   static void check(Argument &argument) {
-    argument.resultEigen.template triangularView<Eigen::Upper>().setZero();
-    argument.resultBLAS.template triangularView<Eigen::Upper>().setZero();
-
-    printf("Max Error: %e\n",
-           (argument.resultEigen.array() - argument.resultBLAS.array())
-               .abs()
-               .maxCoeff());
+    //    argument.resultEigen.template
+    //    triangularView<Eigen::Upper>().setZero(); argument.resultBLAS.template
+    //    triangularView<Eigen::Upper>().setZero();
+    //
+    //    printf("Max Error: %e\n",
+    //           (argument.resultEigen.array() - argument.resultBLAS.array())
+    //               .abs()
+    //               .maxCoeff());
   }
 };

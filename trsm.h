@@ -1,4 +1,5 @@
 #pragma once
+#include "util.h"
 #include <Eigen/Core>
 #if USE_MKL
 #include <mkl_cblas.h>
@@ -19,16 +20,20 @@ template <> struct TRSMDispatcher<float> {
 
 template <typename DataType> struct TRSMEnvironment {
   struct Argument {
-    int m, n, repeat;
+    int m, n;
     Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic> A, resultBLAS;
   };
 
-  static void prepare(Argument &argument) {
+  static Argument prepare(const HyperParameter &hyperParameter) {
+    Argument argument;
+    argument.m = hyperParameter.iterator->m;
+    argument.n = hyperParameter.iterator->n;
     argument.A.resize(argument.m, argument.m);
     argument.A.setRandom();
     argument.A = argument.A * argument.A.transpose();
     argument.A.template triangularView<Eigen::StrictlyUpper>().setZero();
     argument.resultBLAS.resize(argument.m, argument.n);
+    return argument;
   }
 
   static void reset(Argument &argument) {
@@ -49,7 +54,7 @@ template <typename DataType> struct TRSMEnvironment {
   }
 
   static void check(Argument &argument) {
-    printf("Max Error: %e\n",
-           (argument.resultBLAS.array() - 1).abs().maxCoeff());
+    //    printf("Max Error: %e\n",
+    //           (argument.resultBLAS.array() - 1).abs().maxCoeff());
   }
 };

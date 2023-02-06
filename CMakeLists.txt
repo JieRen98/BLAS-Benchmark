@@ -3,7 +3,7 @@ enable_language(CXX)
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_CXX_STANDARD 17)
 
-option(USE_MKL "Use MKL or OpenBlas as backend" ON)
+option(USE_MKL "Use MKL or OpenBlas as backend" OFF)
 
 find_package(Eigen3 REQUIRED)
 find_package(GFLAGS REQUIRED)

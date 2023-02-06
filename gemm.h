@@ -1,4 +1,5 @@
 #pragma once
+#include "util.h"
 #include <Eigen/Core>
 #if USE_MKL
 #include <mkl_cblas.h>
@@ -19,18 +20,23 @@ template <> struct GEMMDispatcher<float> {
 
 template <typename DataType> struct GEMMEnvironment {
   struct Argument {
-    int m, n, k, repeat;
+    int m, n, k;
     Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic> A, B, resultEigen,
         resultBLAS;
   };
 
-  static void prepare(Argument &argument) {
+  static Argument prepare(const HyperParameter &hyperParameter) {
+    Argument argument;
+    argument.m = hyperParameter.iterator->m;
+    argument.n = hyperParameter.iterator->n;
+    argument.k = hyperParameter.iterator->k;
     argument.A.resize(argument.m, argument.k);
     argument.B.resize(argument.k, argument.n);
     argument.A.setRandom();
     argument.B.setRandom();
     argument.resultEigen.resize(argument.m, argument.n);
     argument.resultBLAS.resize(argument.m, argument.n);
+    return argument;
   }
 
   static void reset(Argument &argument) {}
@@ -50,9 +56,9 @@ template <typename DataType> struct GEMMEnvironment {
   }
 
   static void check(Argument &argument) {
-    printf("Max Error: %e\n",
-           (argument.resultEigen.array() - argument.resultBLAS.array())
-               .abs()
-               .maxCoeff());
+    //    printf("Max Error: %e\n",
+    //           (argument.resultEigen.array() - argument.resultBLAS.array())
+    //               .abs()
+    //               .maxCoeff());
   }
 };
