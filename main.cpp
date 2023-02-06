@@ -34,8 +34,9 @@ void compareEnvironment(const HyperParameter &hyperParameter,
     std::chrono::system_clock::duration durationA, durationB;
     durationA = profile<EnvironmentA>(hyperParameter);
     durationB = profile<EnvironmentB>(hyperParameter);
-    printf("(%d, %d, %d) - %s/%s: %Lf\n", hyperParameter.iterator->m,
-           hyperParameter.iterator->n, hyperParameter.iterator->k, nameA, nameB,
+    printf("%s - (%d, %d, %d) - %s/%s: %Lf\n", nameEnvironment,
+           hyperParameter.iterator->m, hyperParameter.iterator->n,
+           hyperParameter.iterator->k, nameA, nameB,
            static_cast<long double>(durationA.count()) / durationB.count());
   }
 }
