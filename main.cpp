@@ -29,12 +29,26 @@ DEFINE_int32(m, 100, "Matrix Size");
 DEFINE_int32(n, 100, "Matrix Size");
 DEFINE_int32(k, 100, "Matrix Size");
 
+template<int lib>
+struct CblasLibrary;
+
+template<>
+struct CblasLibrary<0> {
+  constexpr static const char *name = "OpenBlas";
+};
+
+template<>
+struct CblasLibrary<1> {
+  constexpr static const char *name = "MKL";
+};
+
 int main(int argc, char *argv[]) {
   GFLAGS_NAMESPACE::ParseCommandLineFlags(&argc, &argv, true);
   const int repeat = FLAGS_repeat, m = FLAGS_m, n = FLAGS_n, k = FLAGS_k;
   printf("======== Simple Benchmark ========\n");
   printf("Parameter:\nRepeat: %d, Matrix Size: (m: %d, n: %d, k: %d)\n", repeat,
          m, n, k);
+  printf("Use %s as backend\n", CblasLibrary<USE_MKL>::name);
 
   {
     using Environment = GEMMEnvironment<double>;
